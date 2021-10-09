@@ -4,24 +4,34 @@ import Express from 'express'
 
 import Config from './config.json'
 
+const COUNTRY_MAPPING = {
+  'id': 'Indonesia',
+  'my': 'Malaysia',
+  'th': 'Thailand'
+}
+
 const app = Express()
-const { delighted, infobip } = Config
+const { delighted, infobip, password, sms } = Config
 
 app.listen(process.env.PORT || 3000)
 
 app.get('/', (req, res) => res.status(200).json({ message: "All is good" }))
-app.get('/id', async (req, res) => {
-  const country = 'Indonesia'
+app.get('/metrics/:country', async (req, res) => {
+  if (req.query.pwd !== password) {
+    res.sendStatus(401)
+  }
+
+  const country = COUNTRY_MAPPING[req.params.country]
 
   try {
     const since = DayJs('2021-10-08').toISOString()
 
-    const { data: { results: messages }} = await getMessageLogs(since)
-    const total = countSMS(messages)
+    const { data: { results: messages }} = await getMessageLogs(country, since)
+    const totalSMS = countSMS(messages, country)
 
-    const totalResponses = await getSurveyMetrics(country)
+    const totalSurveyResponses = await getSurveyMetrics(country)
 
-    res.status(200).json({ total, totalResponses })
+    res.status(200).json({ totalSMS, totalSurveyResponses })
   } catch (error) {
     console.error('What is the error here?', error)
     res.status(200).json({ message: 'Ooopppps ... Something is not right' })
@@ -49,16 +59,17 @@ const getSurveyMetrics = async (country) => {
   return totalResponses
 }
 
-const getMessageLogs = async (since) => {
-  const ApiKey = infobip.ApiKey.Indonesia
-  const url = `${infobip.BaseUrl}/sms/1/logs`
+const getMessageLogs = async (country, since) => {
+  const ApiKey = infobip[country].ApiKey
+
+  const url = `${infobip[country].BaseUrl}/sms/1/logs`
   const headers = { 'Authorization': `App ${ApiKey}` }
   const params = { 'sentSince': since }
 
   return await Axios({ url, headers, params })
 }
 
-const countSMS = (messages) => {
+const countSMS = (messages, country) => {
   let PreTestDrive = 0
   let PostTestDrive = 0
   let PostBooking = 0
@@ -67,22 +78,22 @@ const countSMS = (messages) => {
   for (const message of messages) {
     const { text } = message
 
-    if (text.includes('Anda melewatkan janji test drive') || text.includes('test drive Anda telah dibatalkan')) {
+    if (text.includes(sms[country].PreTestDrive[0]) || text.includes(sms[country].PreTestDrive[1])) {
       PreTestDrive++
       continue
     }
 
-    if (text.includes('test drive Anda mmbr Anda petunjuk yg bnr')) {
+    if (text.includes(sms[country].PostTestDrive)) {
       PostTestDrive++
       continue
     }
 
-    if (text.includes('kami menyayangkan kepergian Anda')) {
+    if (text.includes(sms[country].PostBooking)) {
       PostBooking++
       continue
     }
 
-    if (text.includes('Selamat atas kenderaan baru Anda')) {
+    if (text.includes(sms[country].PostPurchase)) {
       PostPurchase++
       continue
     }
