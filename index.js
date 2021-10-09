@@ -11,13 +11,13 @@ const COUNTRY_MAPPING = {
 }
 
 const app = Express()
-const { delighted, infobip, sms } = Config
+const { delighted, infobip, password, sms } = Config
 
 app.listen(process.env.PORT || 3000)
 
 app.get('/', (req, res) => res.status(200).json({ message: "All is good" }))
 app.get('/metrics/:country', async (req, res) => {
-  if (req.query.pwd !== 'carsomebeepbeep') {
+  if (req.query.pwd !== password) {
     res.sendStatus(401)
   }
 

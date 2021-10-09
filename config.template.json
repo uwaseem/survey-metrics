@@ -48,6 +48,7 @@
       "ApiKey": "XXX"
     }
   },
+  "password": "XXX",
   "sms": {
     "Indonesia": {
       "PreTestDrive": [
