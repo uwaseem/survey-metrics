@@ -4,15 +4,17 @@ import Express from 'express'
 
 import Config from './config.json'
 
+const { delighted, infobip, password, sms } = Config
 const COUNTRY_MAPPING = {
   'id': 'Indonesia',
   'my': 'Malaysia',
   'th': 'Thailand'
 }
 
-const app = Express()
-const { delighted, infobip, password, sms } = Config
+const startDate = DayJs().startOf('week')
+const endDate = DayJs()
 
+const app = Express()
 app.listen(process.env.PORT || 3000)
 
 app.get('/', (req, res) => res.status(200).json({ message: "All is good" }))
@@ -24,14 +26,17 @@ app.get('/metrics/:country', async (req, res) => {
   const country = COUNTRY_MAPPING[req.params.country]
 
   try {
-    const since = DayJs('2021-10-08').toISOString()
-
-    const { data: { results: messages }} = await getMessageLogs(country, since)
+    const { data: { results: messages }} = await getMessageLogs(country, startDate)
     const totalSMS = countSMS(messages, country)
 
-    const totalSurveyResponses = await getSurveyMetrics(country)
+    const totalSurveyResponses = await getSurveyMetrics(country, startDate)
 
-    res.status(200).json({ totalSMS, totalSurveyResponses })
+    res.status(200).json({
+      startDate: DayJs(startDate).format('D/M/YY H:mm:ss'),
+      endDate: DayJs(endDate).format('D/M/YY HH:mm:ss'),
+      totalSMS,
+      totalSurveyResponses
+    })
   } catch (error) {
     console.error('What is the error here?', error)
     res.status(200).json({ message: 'Ooopppps ... Something is not right' })
@@ -40,7 +45,7 @@ app.get('/metrics/:country', async (req, res) => {
 
 app.all('*', (req, res) => res.sendStatus(404))
 
-const getSurveyMetrics = async (country) => {
+const getSurveyMetrics = async (country, startDate) => {
   const touchPoints = ['PreTestDrive', 'PostTestDrive', 'PostBooking', 'PostPurchase']
   const url = delighted.BaseUrl
   const totalResponses = {}
@@ -50,7 +55,7 @@ const getSurveyMetrics = async (country) => {
       'username': delighted[touchPoint].ApiKey,
       'password': ''
     }
-    const params = { 'trend': delighted[touchPoint].TrendId[country] }
+    const params = { 'trend': delighted[touchPoint].TrendId[country], since: DayJs(startDate).unix() }
 
     const { data: { response_count: responseCount }} = await Axios({ url, auth, params })
 
@@ -59,12 +64,12 @@ const getSurveyMetrics = async (country) => {
   return totalResponses
 }
 
-const getMessageLogs = async (country, since) => {
+const getMessageLogs = async (country, startDate) => {
   const ApiKey = infobip[country].ApiKey
 
   const url = `${infobip[country].BaseUrl}/sms/1/logs`
   const headers = { 'Authorization': `App ${ApiKey}` }
-  const params = { 'sentSince': since }
+  const params = { 'sentSince': DayJs(startDate).toISOString() }
 
   return await Axios({ url, headers, params })
 }
