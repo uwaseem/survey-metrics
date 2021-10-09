@@ -1,6 +1,46 @@
 {
+  "delighted": {
+    "BaseUrl": "XXX",
+    "PreTestDrive": {
+      "ApiKey": "XXX",
+      "TrendId": {
+        "Indonesia": "XXX",
+        "Malaysia": "XXX",
+        "Thailand": "XXX"
+      }
+    },
+    "PostTestDrive": {
+      "ApiKey": "XXX",
+      "TrendId": {
+        "Indonesia": "XXX",
+        "Malaysia": "XXX",
+        "Thailand": "XXX"
+      }
+    },
+    "PostBooking": {
+      "ApiKey": "XXX",
+      "TrendId": {
+        "Indonesia": "XXX",
+        "Malaysia": "XXX",
+        "Thailand": "XXX"
+      }
+    },
+    "PostPurchase": {
+      "ApiKey": "XXX",
+      "TrendId": {
+        "Indonesia": "XXX",
+        "Malaysia": "XXX",
+        "Thailand": "XXX"
+      }
+    }
+  },
   "infobip": {
-    "baseUrl": "XXX",
-    "IndonesiaApiKey": "XXX"
+    "BaseUrl": "XXX",
+    "ApiKey": {
+      "Indonesia": "XXX",
+      "Malaysia": "XXX",
+      "Thailand": "XXX"
+    }
   }
 }
+
