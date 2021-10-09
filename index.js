@@ -16,7 +16,7 @@ app.get('/id', async (req, res) => {
 
     const total = countSMS(messages)
 
-    res.status(200).json({ message: 'Indonesia is in progress', total })
+    res.status(200).json(total)
   } catch (error) {
     console.error('What is the error here?', error)
     res.status(200).json({ message: 'Ooopppps ... Something is not right' })
@@ -27,7 +27,7 @@ app.all('*', (req, res) => res.sendStatus(404))
 
 const getMessageLogs = async (since) => {
   const ApiKey = Config.infobip.IndonesiaApiKey
-  const url = 'https://gyrxmr.api.infobip.com/sms/1/logs'
+  const url = `${Config.infobip.baseUrl}/sms/1/logs`
   const headers = {
     'Authorization': `App ${ApiKey}`,
     'Accept': 'application/json'
