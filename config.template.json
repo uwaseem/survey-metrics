@@ -35,11 +35,43 @@
     }
   },
   "infobip": {
-    "BaseUrl": "XXX",
-    "ApiKey": {
-      "Indonesia": "XXX",
-      "Malaysia": "XXX",
-      "Thailand": "XXX"
+    "Indonesia": {
+      "BaseUrl": "XXX",
+      "ApiKey": "XXX"
+    },
+    "Malaysia": {
+      "BaseUrl": "XXX",
+      "ApiKey": "XXX"
+    },
+    "Thailand": {
+      "BaseUrl": "XXX",
+      "ApiKey": "XXX"
+    }
+  },
+  "sms": {
+    "Indonesia": {
+      "PreTestDrive": [
+        "XXX",
+        "XXX"
+      ],
+      "PostTestDrive": ["XXX"],
+      "PostBooking": ["XXX"],
+      "PostPurchase": ["XXX"]
+    },
+    "Malaysia": {
+      "PreTestDrive": [
+        "XXX",
+        "XXX"
+      ],
+      "PostTestDrive": ["XXX"],
+      "PostBooking": ["XXX"],
+      "PostPurchase": ["XXX"]
+    },
+    "Thailand": {
+      "PreTestDrive": ["XXX"],
+      "PostTestDrive": ["XXX"],
+      "PostBooking": ["XXX"],
+      "PostPurchase": ["XXX"]
     }
   }
 }
