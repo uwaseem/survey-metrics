@@ -22,7 +22,6 @@ app.get('/metrics/:country', async (req, res) => {
   }
 
   const country = COUNTRY_MAPPING[req.params.country]
-  console.log('This is pulling data for', country)
 
   try {
     const since = DayJs('2021-10-08').toISOString()
@@ -78,7 +77,7 @@ const countSMS = (messages, country) => {
 
   for (const message of messages) {
     const { text } = message
-    console.log({text})
+
     if (text.includes(sms[country].PreTestDrive[0]) || text.includes(sms[country].PreTestDrive[1])) {
       PreTestDrive++
       continue
