@@ -5,6 +5,7 @@ import Express from 'express'
 import Config from './config.json'
 
 const { delighted, infobip, password, sms } = Config
+const TOUCHPOINTS = ['PreTestDrive', 'PostTestDrive', 'PostBooking', 'PostPurchase']
 const COUNTRY_MAPPING = {
   'id': 'Indonesia',
   'my': 'Malaysia',
@@ -31,11 +32,14 @@ app.get('/metrics/:country', async (req, res) => {
 
     const totalSurveyResponses = await getSurveyMetrics(country, startDate)
 
+    const responseRate = calculateResponseRate(totalSMS, totalSurveyResponses)
+
     res.status(200).json({
       startDate: DayJs(startDate).format('D/M/YY H:mm:ss'),
       endDate: DayJs(endDate).format('D/M/YY HH:mm:ss'),
       totalSMS,
-      totalSurveyResponses
+      totalSurveyResponses,
+      responseRate
     })
   } catch (error) {
     console.error('What is the error here?', error)
@@ -46,11 +50,10 @@ app.get('/metrics/:country', async (req, res) => {
 app.all('*', (req, res) => res.sendStatus(404))
 
 const getSurveyMetrics = async (country, startDate) => {
-  const touchPoints = ['PreTestDrive', 'PostTestDrive', 'PostBooking', 'PostPurchase']
   const url = delighted.BaseUrl
   const totalResponses = {}
 
-  for (const touchPoint of touchPoints) {
+  for (const touchPoint of TOUCHPOINTS) {
     const auth = {
       'username': delighted[touchPoint].ApiKey,
       'password': ''
@@ -69,7 +72,7 @@ const getMessageLogs = async (country, startDate) => {
 
   const url = `${infobip[country].BaseUrl}/sms/1/logs`
   const headers = { 'Authorization': `App ${ApiKey}` }
-  const params = { 'sentSince': DayJs(startDate).toISOString() }
+  const params = { 'sentSince': DayJs(startDate).toISOString(), limit: 1000 }
 
   return await Axios({ url, headers, params })
 }
@@ -105,4 +108,13 @@ const countSMS = (messages, country) => {
   }
 
   return { PreTestDrive, PostTestDrive, PostBooking, PostPurchase }
+}
+
+const calculateResponseRate = (sms, survey) => {
+  const responseRate = {}
+
+  for (const touchPoint of TOUCHPOINTS) {
+    responseRate[touchPoint] = `${survey[touchPoint] / sms[touchPoint] * 100}%`
+  }
+  return responseRate
 }
