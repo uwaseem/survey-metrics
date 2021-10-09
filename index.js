@@ -3,20 +3,25 @@ import DayJs from 'dayjs'
 import Express from 'express'
 
 import Config from './config.json'
+
 const app = Express()
+const { delighted, infobip } = Config
 
 app.listen(process.env.PORT || 3000)
 
 app.get('/', (req, res) => res.status(200).json({ message: "All is good" }))
 app.get('/id', async (req, res) => {
+  const country = 'Indonesia'
+
   try {
     const since = DayJs('2021-10-08').toISOString()
 
-    const { data: { results: messages } } = await getMessageLogs(since)
-
+    const { data: { results: messages }} = await getMessageLogs(since)
     const total = countSMS(messages)
 
-    res.status(200).json(total)
+    const totalResponses = await getSurveyMetrics(country)
+
+    res.status(200).json({ total, totalResponses })
   } catch (error) {
     console.error('What is the error here?', error)
     res.status(200).json({ message: 'Ooopppps ... Something is not right' })
@@ -25,17 +30,30 @@ app.get('/id', async (req, res) => {
 
 app.all('*', (req, res) => res.sendStatus(404))
 
-const getMessageLogs = async (since) => {
-  const ApiKey = Config.infobip.IndonesiaApiKey
-  const url = `${Config.infobip.baseUrl}/sms/1/logs`
-  const headers = {
-    'Authorization': `App ${ApiKey}`,
-    'Accept': 'application/json'
-  }
+const getSurveyMetrics = async (country) => {
+  const touchPoints = ['PreTestDrive', 'PostTestDrive', 'PostBooking', 'PostPurchase']
+  const url = delighted.BaseUrl
+  const totalResponses = {}
 
-  const params = {
-    'sentSince': since
+  for (const touchPoint of touchPoints) {
+    const auth = {
+      'username': delighted[touchPoint].ApiKey,
+      'password': ''
+    }
+    const params = { 'trend': delighted[touchPoint].TrendId[country] }
+
+    const { data: { response_count: responseCount }} = await Axios({ url, auth, params })
+
+    totalResponses[touchPoint] = responseCount
   }
+  return totalResponses
+}
+
+const getMessageLogs = async (since) => {
+  const ApiKey = infobip.ApiKey.Indonesia
+  const url = `${infobip.BaseUrl}/sms/1/logs`
+  const headers = { 'Authorization': `App ${ApiKey}` }
+  const params = { 'sentSince': since }
 
   return await Axios({ url, headers, params })
 }
