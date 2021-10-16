@@ -23,9 +23,7 @@ app.get('/metrics/:country', async (req, res) => {
 
   const country = COUNTRY_MAPPING[req.params.country]
   const startDate = DayJs().startOf('month')
-  console.log('what is the start date here?', startDate)
   const endDate = DayJs()
-  console.log('what is the end date here?', endDate)
 
   try {
     const { data: { results: messages }} = await getMessageLogs(country, startDate)
