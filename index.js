@@ -27,10 +27,8 @@ app.get('/metrics/:country', async (req, res) => {
 
   try {
     const { data: { results: messages }} = await getMessageLogs(country, startDate)
-    const totalSMS = countSMS(messages, country)
-
-
     const totalSurveyResponses = await getSurveyMetrics(country, startDate, endDate)
+    const totalSMS = countSMS(messages, country)
 
     const responseRate = calculateResponseRate(totalSMS, totalSurveyResponses)
 
@@ -113,7 +111,8 @@ const calculateResponseRate = (sms, survey) => {
   const responseRate = {}
 
   for (const touchPoint of TOUCHPOINTS) {
-    responseRate[touchPoint] = `${survey[touchPoint] / sms[touchPoint] * 100}%`
+    const percentage = survey[touchPoint] / sms[touchPoint] * 100
+    responseRate[touchPoint] = `${+percentage.toFixed(2)}%`
   }
   return responseRate
 }
