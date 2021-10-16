@@ -12,9 +12,6 @@ const COUNTRY_MAPPING = {
   'th': 'Thailand'
 }
 
-const startDate = DayJs().startOf('week')
-const endDate = DayJs()
-
 const app = Express()
 app.listen(process.env.PORT || 3000)
 
@@ -25,12 +22,13 @@ app.get('/metrics/:country', async (req, res) => {
   }
 
   const country = COUNTRY_MAPPING[req.params.country]
+  const startDate = DayJs().startOf('month')
+  const endDate = DayJs()
 
   try {
     const { data: { results: messages }} = await getMessageLogs(country, startDate)
+    const totalSurveyResponses = await getSurveyMetrics(country, startDate, endDate)
     const totalSMS = countSMS(messages, country)
-
-    const totalSurveyResponses = await getSurveyMetrics(country, startDate)
 
     const responseRate = calculateResponseRate(totalSMS, totalSurveyResponses)
 
@@ -49,7 +47,7 @@ app.get('/metrics/:country', async (req, res) => {
 
 app.all('*', (req, res) => res.sendStatus(404))
 
-const getSurveyMetrics = async (country, startDate) => {
+const getSurveyMetrics = async (country, startDate, endDate) => {
   const url = delighted.BaseUrl
   const totalResponses = {}
 
@@ -58,8 +56,7 @@ const getSurveyMetrics = async (country, startDate) => {
       'username': delighted[touchPoint].ApiKey,
       'password': ''
     }
-    const params = { 'trend': delighted[touchPoint].TrendId[country], since: DayJs(startDate).unix() }
-
+    const params = { 'trend': delighted[touchPoint].TrendId[country], since: DayJs(startDate).unix(), until: DayJs(endDate).unix() }
     const { data: { response_count: responseCount }} = await Axios({ url, auth, params })
 
     totalResponses[touchPoint] = responseCount
@@ -114,7 +111,8 @@ const calculateResponseRate = (sms, survey) => {
   const responseRate = {}
 
   for (const touchPoint of TOUCHPOINTS) {
-    responseRate[touchPoint] = `${survey[touchPoint] / sms[touchPoint] * 100}%`
+    const percentage = survey[touchPoint] / sms[touchPoint] * 100
+    responseRate[touchPoint] = `${+percentage.toFixed(2)}%`
   }
   return responseRate
 }
