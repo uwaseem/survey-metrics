@@ -1,0 +1,26 @@
+block variables
+doctype html
+html
+  head
+    meta(charset="utf-8")
+    link(rel="shortcut icon", href="/favicon.ico")
+    meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    meta(name="theme-color", content="#000000")
+
+    title Survey Response Rate - #{country}
+
+  body
+    h1 Survey Response Rate - #{country}
+    h2 #{startDate} till #{endDate}
+    table(style='width:100%', border='1')
+      tr
+        th Touchpoint
+        th Total SMS Sent
+        th Total Survey Response
+        th Response Rate
+      each result in results
+        tr
+          td= result.name
+          td= result.totalSMS
+          td= result.totalSurveyResponses
+          td= result.responseRate
