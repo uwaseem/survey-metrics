@@ -1,6 +1,7 @@
 import Axios from 'axios'
 import DayJs from 'dayjs'
 import Express from 'express'
+import Path from 'path'
 
 import Config from './config.json'
 
@@ -12,8 +13,13 @@ const COUNTRY_MAPPING = {
   'th': 'Thailand'
 }
 
+const __dirname = Path.resolve();
+
 const app = Express()
 app.listen(process.env.PORT || 3000)
+
+app.set("views", Path.join(__dirname, "views"));
+app.set("view engine", "pug");
 
 app.get('/', (req, res) => res.status(200).json({ message: "All is good" }))
 app.get('/metrics/:country', async (req, res) => {
@@ -32,12 +38,18 @@ app.get('/metrics/:country', async (req, res) => {
 
     const responseRate = calculateResponseRate(totalSMS, totalSurveyResponses)
 
-    res.status(200).json({
-      startDate: DayJs(startDate).format('D/M/YY H:mm:ss'),
-      endDate: DayJs(endDate).format('D/M/YY HH:mm:ss'),
-      totalSMS,
-      totalSurveyResponses,
-      responseRate
+    const results = TOUCHPOINTS.map(touchPoint => ({
+      name: touchPoint,
+      totalSMS: totalSMS[touchPoint],
+      totalSurveyResponses: totalSurveyResponses[touchPoint],
+      responseRate: responseRate[touchPoint]
+    }))
+
+    res.render("index", {
+      startDate: DayJs(startDate).format('D MMMM YY H:mm:ss'),
+      endDate: DayJs(endDate).format('D MMMM YY HH:mm:ss'),
+      country,
+      results
     })
   } catch (error) {
     console.error('What is the error here?', error)
